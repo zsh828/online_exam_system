@@ -20,15 +20,15 @@ def paper_service(db):
 def setup_questions(question_service):
     q1 = {"q_type": "single", "content": "Q1", "options": ["A"], "correct_answer": "A", "category": "cat1"}
     q2 = {"q_type": "single", "content": "Q2", "options": ["B"], "correct_answer": "B", "category": "cat1"}
-    question_service.create_question(1, q1)
-    question_service.create_question(1, q2)
-    return [1, 2]
+    _, _, q1_obj = question_service.create_question(1, q1)
+    _, _, q2_obj = question_service.create_question(1, q2)
+    return [q1_obj.question_id, q2_obj.question_id]
 
 class TestCreatePaper:
     def test_create_valid_paper(self, paper_service, db, setup_questions):
         questions_map = [
-            {"question_id": 1, "score": 10},
-            {"question_id": 2, "score": 20}
+            {"question_id": setup_questions[0], "score": 10},
+            {"question_id": setup_questions[1], "score": 20}
         ]
         success, msg, paper = paper_service.create_paper(1, "Test Paper", questions_map)
         assert success is True
@@ -47,7 +47,7 @@ class TestCreatePaper:
 
     def test_create_paper_missing_score_field(self, paper_service, setup_questions):
         questions_map = [
-            {"question_id": 1}  # Missing score
+            {"question_id": setup_questions[0]}  # Missing score
         ]
         success, msg, paper = paper_service.create_paper(1, "Bad Paper", questions_map)
         assert success is False
@@ -55,7 +55,7 @@ class TestCreatePaper:
 
 class TestDeletePaper:
     def test_delete_existing_paper(self, paper_service, db, setup_questions):
-        questions_map = [{"question_id": 1, "score": 10}]
+        questions_map = [{"question_id": setup_questions[0], "score": 10}]
         paper_service.create_paper(1, "Del Me", questions_map)
         success, msg = paper_service.delete_paper(1)
         assert success is True
@@ -68,8 +68,8 @@ class TestDeletePaper:
 
 class TestGetByCreator:
     def test_get_papers_by_creator(self, paper_service, db, setup_questions):
-        questions_map1 = [{"question_id": 1, "score": 10}]
-        questions_map2 = [{"question_id": 2, "score": 20}]
+        questions_map1 = [{"question_id": setup_questions[0], "score": 10}]
+        questions_map2 = [{"question_id": setup_questions[1], "score": 20}]
         paper_service.create_paper(1, "Paper A", questions_map1)
         paper_service.create_paper(1, "Paper B", questions_map2)
         paper_service.create_paper(2, "Paper C", questions_map1) # Different creator
