@@ -99,19 +99,21 @@ class TestSubmitExam:
             "category": "art"
         }
         question_service.create_question(1, mc_data)
-        qid = 3
         
         pm = [{"question_id": 3, "score": 100}]
-        paper_service.create_paper(1, "MC Exam", pm)
+        success, msg, paper = paper_service.create_paper(1, "MC Exam", pm)
+        
+        # Use the actual paper ID returned by create_paper
+        paper_id = paper.paper_id
         
         # Submit correct order
         ans1 = [{"question_id": 3, "user_answer": ["Red", "Blue"]}]
-        _, _, rec1 = exam_service.submit_exam(1, 2, ans1) # Paper ID 2
+        _, _, rec1 = exam_service.submit_exam(1, paper_id, ans1)
         assert rec1.score == 100
         
         # Submit reversed order (should still be correct)
         ans2 = [{"question_id": 3, "user_answer": ["Blue", "Red"]}]
-        _, _, rec2 = exam_service.submit_exam(2, 2, ans2) # Paper ID 2
+        _, _, rec2 = exam_service.submit_exam(2, paper_id, ans2)
         assert rec2.score == 100
 
 class TestStatistics:
@@ -123,7 +125,7 @@ class TestStatistics:
         assert result["pass_rate"] == 0
         assert result["total_students"] == 0
 
-    def test_stats_calculate_avg_max_min(self, exam_service, db, setup_exam_environment):
+    def test_stats_calculate_avg_max_min(self, exam_service, db, setup_exam_environment, stats_service):
         user_id, paper_id = setup_exam_environment
         
         # Student 1: 100 points
@@ -146,7 +148,7 @@ class TestStatistics:
         # Only student 1 passed (>=60)
         assert result["pass_rate"] == 50.0
 
-    def test_stats_pass_rate_boundary(self, exam_service, db, setup_exam_environment):
+    def test_stats_pass_rate_boundary(self, exam_service, db, setup_exam_environment, stats_service):
         user_id, paper_id = setup_exam_environment
         
         # Student 1: Exactly 60 (if possible, but our exam is 100 pts total, single Q worth 50)
