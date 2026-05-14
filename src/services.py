@@ -48,6 +48,10 @@ class QuestionService:
         q_id = self.db.add_question(q_type, content, options, correct_answer, category)
         return {"success": True, "question_id": q_id}
 
+    # Alias for test compatibility if needed, but tests should use add_question
+    def create_question(self, teacher_id: int, q_type: str, content: str, options: List[str], correct_answer: any, category: str) -> Dict:
+        return self.add_question(teacher_id, q_type, content, options, correct_answer, category)
+
     def delete_question(self, teacher_id: int, question_id: int) -> Dict:
         teacher = self.db.get_user_by_id(teacher_id)
         if not teacher or teacher.role != 'teacher':
@@ -72,6 +76,10 @@ class QuestionService:
 
     def get_questions_by_category(self, category: str) -> List[Question]:
         return self.db.list_questions_by_category(category)
+    
+    # Alias for test compatibility
+    def query_by_category(self, category: str) -> List[Question]:
+        return self.get_questions_by_category(category)
 
 
 class PaperService:
